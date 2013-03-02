@@ -6,6 +6,39 @@ include TwoChannelParser
 class ApplicationController < ActionController::Base
   protect_from_forgery
 
+  def bbstable
+    callback = params[:callback]
+
+    map = bbstable_to_hashmap()
+    json = JSON.generate(map)
+
+    res =
+      if callback # JSONP
+        "#{callback}(#{json});"
+      else        # JSON
+        json
+      end
+
+    render({:content_type => :js, :text => res})
+  end
+
+  def subject
+    url = params[:url]
+    callback = params[:callback]
+
+    map = subject_to_hashmap(url)
+    json = JSON.generate(map)
+
+    res =
+      if callback # JSONP
+        "#{callback}(#{json});"
+      else        # JSON
+        json
+      end
+
+    render({:content_type => :js, :text => res})
+  end
+
   def thread
     url = params[:url]
 

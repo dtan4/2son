@@ -1,4 +1,6 @@
 Twoson::Application.routes.draw do
+  get "bbstable" => "application#bbstable"
+  get "subject" => "application#subject"
   get "thread" => "application#thread"
 
   # The priority is based upon order of creation:
