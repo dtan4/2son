@@ -9,20 +9,33 @@ class ApplicationController < ActionController::Base
   def thread
     url = params[:url]
 
-    skip_aa = params[:showaa]
-    skip_nl = params[:shownl]
+    show_aa = str_to_bool(params[:showaa], true)
+    escape_nl = str_to_bool(params[:escapenl], false)
     callback = params[:callback]
 
-    map = thread_to_hashmap(url, skip_aa, skip_nl)
+    map = thread_to_hashmap(url, show_aa, escape_nl)
     json = JSON.generate(map)
 
     res =
-      if callback
+      if callback # JSONP
         "#{callback}(#{json});"
-      else
+      else        # JSON
         json
       end
 
     render({:content_type => :js, :text => res})
+  end
+
+  private
+  def str_to_bool(str, default)
+    if str
+      if str.downcase == "true"
+        return true
+      else
+        return false
+      end
+    end
+
+    return default
   end
 end
