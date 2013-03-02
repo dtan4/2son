@@ -44,9 +44,10 @@ class ApplicationController < ActionController::Base
 
     show_aa = str_to_bool(params[:showaa], true)
     escape_nl = str_to_bool(params[:escapenl], false)
+    refs = str_to_bool(params[:refs], false)
     callback = params[:callback]
 
-    map = thread_to_hashmap(url, show_aa, escape_nl)
+    map = thread_to_hashmap(url, show_aa, escape_nl, refs)
     json = JSON.generate(map)
 
     res =

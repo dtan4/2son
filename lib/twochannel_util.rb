@@ -47,7 +47,7 @@ module TwoChannelParser
     return subject
   end
 
-  def thread_to_hashmap(thread_url, skip_aa, skip_nl)
+  def thread_to_hashmap(thread_url, skip_aa, skip_nl, show_refs)
     dat_url, kako_url = get_dat_url(thread_url)
     res = fetch_url(dat_url)
     thread = {"thread_url" => thread_url}
@@ -57,7 +57,7 @@ module TwoChannelParser
       thread["result"] = true
       thread["archived"] = false
       body = extract_gz(res.body)
-      res_map = parse_dat_body(body, skip_aa, skip_nl)
+      res_map = parse_dat_body(body, skip_aa, skip_nl, show_refs)
       thread["res"] = res_map
       thread["count"] = res_map.length
     when Net::HTTPNonAuthoritativeInformation
@@ -68,7 +68,7 @@ module TwoChannelParser
         thread["result"] = true
         thread["archived"] = true
         body = extract_gz(kako_res.body)
-        res_map = parse_dat_body(body, skip_aa, skip_nl)
+        res_map = parse_dat_body(body, skip_aa, skip_nl, show_refs)
         thread["res"] = res_map
         thread["count"] = res_map.length
       else
@@ -192,7 +192,7 @@ module TwoChannelParser
     return subject_map
   end
 
-  def parse_dat_body(body, skip_aa, skip_nl)
+  def parse_dat_body(body, skip_aa, skip_nl, show_refs)
     # Shift-JIS -> UTF-8
     thread_body = NKF.nkf("-w", body)
 
@@ -200,10 +200,16 @@ module TwoChannelParser
     res_map = {}
 
     thread_body.each_line do |line|
-      name, email, date, id, body, refs = parse_res_line(line, skip_aa, skip_nl)
+      name, email, date, id, body, refs =
+        parse_res_line(line, skip_aa, skip_nl, show_refs)
 
-      res_map[i] = {"name" => name, "email" => email, "date" => date, "id" => id,
-        "body" => body, "refs" => refs.uniq.sort}
+      if show_refs
+        res_map[i] = {"name" => name, "email" => email, "date" => date, "id" => id,
+          "body" => body, "refs" => refs.uniq.sort}
+      else
+        res_map[i] = {"name" => name, "email" => email, "date" => date, "id" => id,
+          "body" => body}
+      end
 
       # if i == 1
       #   thread["title"] = line_arr[4].strip
@@ -229,7 +235,7 @@ module TwoChannelParser
     return dat, subject, count
   end
 
-  def parse_res_line(line, skip_aa, skip_nl)
+  def parse_res_line(line, skip_aa, skip_nl, show_refs)
     line_arr = line.split("<>")
     name = line_arr[0].gsub(/<\/{0,1}b>/, "")
     email = line_arr[1]
@@ -269,8 +275,10 @@ module TwoChannelParser
       .gsub("&quot;", "\"")
 
     refs = []
-    body.scan(/(?:>|＞)+(\d{1,4})/).each do |match|
-      refs << match[0]
+    if show_refs
+      body.scan(/(?:>|＞)+(\d{1,4})/).each do |match|
+        refs << match[0]
+      end
     end
 
     body = body.gsub(/<a href="(.*?)" target="_blank">(>>\d{1,4})<\/a>/i){$2}
