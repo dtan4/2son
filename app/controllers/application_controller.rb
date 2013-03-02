@@ -10,14 +10,7 @@ class ApplicationController < ActionController::Base
     callback = params[:callback]
 
     map = bbstable_to_hashmap()
-    json = JSON.generate(map)
-
-    res =
-      if callback # JSONP
-        "#{callback}(#{json});"
-      else        # JSON
-        json
-      end
+    res = generate_response(map, callback)
 
     render({:content_type => :js, :text => res})
   end
@@ -27,14 +20,7 @@ class ApplicationController < ActionController::Base
     callback = params[:callback]
 
     map = subject_to_hashmap(url)
-    json = JSON.generate(map)
-
-    res =
-      if callback # JSONP
-        "#{callback}(#{json});"
-      else        # JSON
-        json
-      end
+    res = generate_response(map, callback)
 
     render({:content_type => :js, :text => res})
   end
@@ -48,14 +34,7 @@ class ApplicationController < ActionController::Base
     callback = params[:callback]
 
     map = thread_to_hashmap(url, show_aa, escape_nl, refs)
-    json = JSON.generate(map)
-
-    res =
-      if callback # JSONP
-        "#{callback}(#{json});"
-      else        # JSON
-        json
-      end
+    res = generate_response(map, callback)
 
     render({:content_type => :js, :text => res})
   end
@@ -71,5 +50,18 @@ class ApplicationController < ActionController::Base
     end
 
     return default
+  end
+
+  def generate_response(map, callback)
+    json = JSON.generate(map)
+
+    res =
+      if callback # JSONP
+        "#{callback}(#{json});"
+      else        # JSON
+        json
+      end
+
+    return res
   end
 end
