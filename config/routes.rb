@@ -1,4 +1,8 @@
 Twoson::Application.routes.draw do
+  get "thread/json"
+
+  get "thread/jsonp"
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 
