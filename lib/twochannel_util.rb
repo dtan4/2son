@@ -8,6 +8,26 @@ require 'zlib'
 require 'nkf'
 
 module TwoChannelParser
+  BBSTABLE_URL = "http://menu.2ch.net/bbstable.html"
+
+  def bbstable_to_hashmap
+    res = fetch_url(BBSTABLE_URL)
+    bbstable = {}
+
+    case res
+    when Net::HTTPOK
+      bbstable["result"] = true
+      body = extract_gz(res.body)
+      board_map = parse_bbstable_body(body)
+      bbstable["board"] = board_map
+      bbstable["count"] = board_map.length
+    else
+      bbstable["result"] = false
+    end
+
+    return bbstable
+  end
+
   def subject_to_hashmap(board_url)
     subject_url = get_subject_url(board_url)
     res = fetch_url(subject_url)
@@ -123,6 +143,40 @@ module TwoChannelParser
     end
 
     return body
+  end
+
+  def parse_bbstable_body(body)
+    # Shift-JIS -> UTF-8
+    bbstable_body = NKF.nkf("-w", body)
+    board = {}
+
+    if /<font size=2>(.*)<\/font>/m =~ bbstable_body
+      bbstable_body = $1
+      category = "no category"
+      board = {category => []}
+
+      bbstable_body.each_line do |line|
+        # 空行を弾く
+        if /^\s+$/ =~ line
+          next
+        end
+
+        if /【<B>(.+)<\/B>】/ =~ line
+          category = $1
+          board[category] = []
+          next
+        end
+
+        if /<A HREF=(.+) TARGET=_blank>(.+)<\/A>/ =~ line ||
+            /<A HREF=(.+)>(.+)<\/A>/ =~ line
+          url = $1
+          board_name = $2
+          board[category] << {"url" => url, "board" => board_name}
+        end
+      end
+    end
+
+    return board
   end
 
   def parse_subject_body(body)
