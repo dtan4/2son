@@ -7,7 +7,7 @@ class ApplicationController < ActionController::Base
   protect_from_forgery
 
   def bbstable
-    callback = params[:callback]
+    callback = params[:jsonp]
 
     map = bbstable_to_hashmap()
     res = generate_response(map, callback)
@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
 
   def subject
     url = params[:url]
-    callback = params[:callback]
+    callback = params[:jsonp]
 
     map = subject_to_hashmap(url)
     res = generate_response(map, callback)
@@ -28,10 +28,10 @@ class ApplicationController < ActionController::Base
   def thread
     url = params[:url]
 
-    show_aa = str_to_bool(params[:showaa], true)
-    escape_nl = str_to_bool(params[:escapenl], false)
+    show_aa = str_to_bool(params[:show_aa], true)
+    escape_nl = str_to_bool(params[:escape_nl], false)
     refs = str_to_bool(params[:refs], false)
-    callback = params[:callback]
+    callback = params[:jsonp]
 
     map = thread_to_hashmap(url, show_aa, escape_nl, refs)
     res = generate_response(map, callback)

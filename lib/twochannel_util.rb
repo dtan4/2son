@@ -47,7 +47,7 @@ module TwoChannelParser
     return subject
   end
 
-  def thread_to_hashmap(thread_url, skip_aa, skip_nl, show_refs)
+  def thread_to_hashmap(thread_url, show_aa, escape_nl, show_refs)
     dat_url, kako_url = get_dat_url(thread_url)
     res = fetch_url(dat_url)
     thread = {"thread_url" => thread_url}
@@ -57,18 +57,20 @@ module TwoChannelParser
       thread["result"] = true
       thread["archived"] = false
       body = extract_gz(res.body)
-      res_map = parse_dat_body(body, skip_aa, skip_nl, show_refs)
+      res_map, title = parse_dat_body(body, show_aa, escape_nl, show_refs)
+      thread["title"] = title
       thread["res"] = res_map
       thread["count"] = res_map.length
     when Net::HTTPNonAuthoritativeInformation
       kako_res = fetch_url(kako_url)
 
       case kako_res
-      when Net::HTTPSuccess
+      when Net::HTTPSuccess # dat 落ち
         thread["result"] = true
         thread["archived"] = true
         body = extract_gz(kako_res.body)
-        res_map = parse_dat_body(body, skip_aa, skip_nl, show_refs)
+        res_map, title = parse_dat_body(body, show_aa, escape_nl, show_refs)
+        thread["title"] = title
         thread["res"] = res_map
         thread["count"] = res_map.length
       else
@@ -97,7 +99,6 @@ module TwoChannelParser
     end
   end
 
-  # http://toro.2ch.net/test/read.cgi/famicom/1361411122/
   def get_dat_url(thread_url)
     if thread_url && validate_thread_url(thread_url)
       arr = thread_url.split('/')
@@ -192,16 +193,17 @@ module TwoChannelParser
     return subject_map
   end
 
-  def parse_dat_body(body, skip_aa, skip_nl, show_refs)
+  def parse_dat_body(body, show_aa, escape_nl, show_refs)
     # Shift-JIS -> UTF-8
     thread_body = NKF.nkf("-w", body)
+    thread_title = ""
 
     i = 1
     res_map = {}
 
     thread_body.each_line do |line|
-      name, email, date, id, body, refs =
-        parse_res_line(line, skip_aa, skip_nl, show_refs)
+      name, email, date, id, body, refs, title =
+        parse_res_line(line, show_aa, escape_nl, show_refs)
 
       if show_refs
         res_map[i] = {"name" => name, "email" => email, "date" => date, "id" => id,
@@ -211,14 +213,12 @@ module TwoChannelParser
           "body" => body}
       end
 
-      # if i == 1
-      #   thread["title"] = line_arr[4].strip
-      # end
+      thread_title = title if title != ""
 
       i = i.next
     end
 
-    return res_map
+    return res_map, thread_title
   end
 
   def parse_subject_line(line)
@@ -235,13 +235,14 @@ module TwoChannelParser
     return dat, subject, count
   end
 
-  def parse_res_line(line, skip_aa, skip_nl, show_refs)
+  def parse_res_line(line, show_aa, escape_nl, show_refs)
     line_arr = line.split("<>")
-    name = line_arr[0].gsub(/<\/{0,1}b>/, "")
+    name = line_arr[0].gsub(/<\/?b>/, "")
     email = line_arr[1]
     date_and_id = line_arr[2]
     date = ""
     id = ""
+    title = ""
 
     if date_and_id == "あぼーん"
       date = "あぼーん"
@@ -259,14 +260,14 @@ module TwoChannelParser
     body = line_arr[3].strip
 
     # http://d.hatena.ne.jp/awef/20110412/1302605740
-    if skip_aa && /　 (?!<br>|$)/i =~ body
+    if !show_aa && /　 (?!<br>|$)/i =~ body
       body = "<AA>"
     end
 
-    if skip_nl
-      body = body.gsub(/\s*<br>\s*/i, " ")
-    else
+    if escape_nl
       body = body.gsub(/\s*<br>\s*/i, "\\\\n")
+    else
+      body = body.gsub(/\s*<br>\s*/i, " ")
     end
 
     body = body
@@ -284,6 +285,10 @@ module TwoChannelParser
     body = body.gsub(/<a href="(.*?)" target="_blank">(>>\d{1,4})<\/a>/i){$2}
     body = body.gsub(/<a href="(.*?)" target="_blank">/i){$1}
 
-    return name, email, date, id, body, refs
+    if line_arr.length > 4
+      thread_title = line_arr[4]
+    end
+
+    return name, email, date, id, body, refs, thread_title
   end
 end
