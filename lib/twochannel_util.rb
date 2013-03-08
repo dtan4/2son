@@ -172,7 +172,7 @@ module TwoChannelParser
             /<A HREF=(.+)>(.+)<\/A>/ =~ line
           url = $1
           board_name = $2
-          board[category] << {"url" => url, "board" => board_name}
+          board[category] << {"url" => url, "title" => board_name}
         end
       end
     end
@@ -187,7 +187,7 @@ module TwoChannelParser
 
     subject_body.each_line do |line|
       dat, subject, count = parse_subject_line(line)
-      subject_map << {"dat" => dat, "subject" => subject, "count" => count}
+      subject_map << {"dat" => dat, "title" => subject, "res_count" => count}
     end
 
     return subject_map
