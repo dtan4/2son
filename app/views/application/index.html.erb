@@ -1,2 +1,379 @@
-<h1>Application#index</h1>
-<p>Find me in app/views/application/index.html.erb</p>
+<h1>2son</h1> <a href="http://twoson.herokuapp.com">http://twoson.herokuapp.com</a>
+
+<span>
+<a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+</span>
+
+<hr />
+
+<h2>概要</h2>
+
+<p>2ch のデータを JSON(P) 形式に変換する API サーバです。</p>
+<p>板一覧、スレッド一覧、スレッドの取得変換に対応しています。</p>
+<p>dat 落ちしたスレッドも JSON 出力させることが可能です。</p>
+
+<hr />
+
+<h2>仕様</h2>
+<strong>この仕様は時折変更される可能性があります。</strong>
+
+<h3>共通仕様</h3>
+
+<h4>共通のパラメータ</h4>
+
+<ul>
+<li><code>jsonp</code>
+<ul>
+<li>JSONP のコールバック関数名</li>
+<li><code>jsonp</code> パラメータを付加することで、出力が JSONP 形式になります。</li>
+</ul></li>
+</ul>
+
+<h4>共通出力</h4>
+
+<p>出力のエンコードは UTF-8 です。</p>
+
+<ul>
+<li><code>result</code>
+<ul>
+<li>データが正常取得できた場合に <em>true</em></li>
+</ul></li>
+</ul>
+
+<br>
+
+<h3>板一覧 (bbstable)</h3>
+
+<pre><code>http://twoson.herokuapp.com/bbstable?&lt;parameter&gt;
+</code></pre>
+
+<h4>出力例</h4>
+<p><a href="http://twoson.herokuapp.com/bbstable">http://twoson.herokuapp.com/bbstable</a></p>
+
+<div class="accordion" id="makeaccBbs">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse"
+         data-parent="#makeaccBbs" href="#collapseBbs">出力例</a>
+    </div>
+    <div id="collapseBbs" class="accordion-body collapse">
+      <div class="accordion-inner">
+<pre><code>{
+  "result": true,
+  "board": {
+    "no category": [
+      {
+        "url": "http://www.2ch.net/",
+        "title": "2chの入り口"
+      },
+      {
+        "url": "http://info.2ch.net/guide/",
+        "title": "2ch総合案内"
+      }
+    ],
+    "地震": [
+      {
+        "url": "http://anago.2ch.net/namazuplus/",
+        "title": "地震速報"
+      },
+      {
+        "url": "http://hayabusa.2ch.net/eq/",
+        "title": "臨時地震"
+      },
+      {
+        "url": "http://hayabusa2.2ch.net/eqplus/",
+        "title": "臨時地震+"
+      },
+      {
+        "url": "http://uni.2ch.net/lifeline/",
+        "title": "緊急自然災害@超臨時"
+      }
+    ],
+    ...
+  }
+}
+</code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4>レスポンス JSON</h4>
+
+<ul>
+  <li><code>board</code>
+    <ul>
+      <li><code>url</code>
+        <ul>
+          <li>板の URL</li>
+      </ul></li>
+      <li><code>title</code>
+        <ul>
+          <li>板名</li>
+      </ul></li>
+  </ul></li>
+</ul>
+
+<br>
+
+<h3>スレッド一覧 (subject)</h3>
+
+<pre><code>http://twoson.herokuapp.com/subject?&lt;parameter&gt;
+</code></pre>
+
+<h4>パラメータ</h4>
+
+<ul>
+<li><code>url</code> <strong>必須</strong>
+<ul>
+<li>板の URL</li>
+<li>ex. http://engawa.2ch.net/linux/</li>
+</ul></li>
+</ul>
+
+<h4>出力例</h4>
+<p><a href="http://twoson.herokuapp.com/subject?url=http://engawa.2ch.net/linux/">http://twoson.herokuapp.com/subject?url=http://engawa.2ch.net/linux/ (Linux 板)</a></p>
+
+<div class="accordion" id="makeaccSubject">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse"
+         data-parent="#makeaccSubject" href="#collapseSubject">出力例</a>
+    </div>
+    <div id="collapseSubject" class="accordion-body collapse">
+      <div class="accordion-inner">
+<pre><code>{
+  "board_url": "http://engawa.2ch.net/linux/",
+  "result": true,
+  "subject": [
+    {
+      "dat": "9241205101.dat",
+      "title": "【看過できない】集めればいいんだろ？コンプガチャの実態とは、★２",
+      "res_count": 9
+    },
+    {
+      "dat": "9241203701.dat",
+      "title": "【3.11】 その時２ちゃんねるは・・・",
+      "res_count": 73
+    },
+    {
+      "dat": "1358204325.dat",
+      "title": "くだらねえ質問はここに書き込め！ Part 204",
+      "res_count": 637
+    },
+    ...
+  ],
+  "count": 706
+}
+</code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4>レスポンス JSON</h4>
+
+<ul>
+  <li><code>board_url</code>
+    <ul>
+      <li>板の URL</li>
+  </ul></li>
+  <li><code>result</code>
+    <ul>
+      <li>取得結果</li>
+  </ul></li>
+  <li><code>subject</code>
+    <ul>
+      <li><code>dat</code>
+        <ul>
+          <li>dat ファイル名</li>
+      </ul></li>
+      <li><code>title</code>
+        <ul>
+          <li>スレッドタイトル</li>
+      </ul></li>
+      <li><code>res_count</code>
+        <ul>
+          <li>スレッド内レス数</li>
+      </ul></li>
+  </ul></li>
+  <li><code>count</code>
+    <ul>
+      <li>板内スレッド数</li>
+  </ul></li>
+</ul>
+
+<br>
+
+<h3>スレッド (thread)</h3>
+
+<pre><code>http://twoson.herokuapp.com/thread?&lt;parameter&gt;
+</code></pre>
+
+<h4>パラメータ</h4>
+
+<ul>
+<li><code>url</code> <strong>必須</strong>
+<ul>
+<li>スレッドの URL</li>
+<li>ex. http://engawa.2ch.net/test/read.cgi/linux/1356654422/</li>
+<li><strong>dat落ちしたスレッドも取得することが可能です</strong></li>
+</ul></li>
+<li><code>show_aa</code> [true / false (default)]
+<ul>
+<li><em>true</em> を指定すると AA をそのまま出力に含める</li>
+<li>指定しない場合、AA の含まれるレス本文は &lt;AA&gt; で置き換えられます。</li>
+</ul></li>
+<li><code>escape_nl</code> [true / false (default)]
+<ul>
+<li><em>true</em> を指定すると改行を \\n で置き換える</li>
+<li>指定しない場合、改行は半角スペースで置き換えられます。</li>
+</ul></li>
+<li><code>refs</code> [true / false (default)]
+<ul>
+<li><em>true</em> を指定するとレスに含まれるレス参照（アンカー）を抽出</li>
+<li>例えば本文中に &gt;&gt;100, &gt;&gt;200 というアンカーがあった場合、レスの JSON に以下の要素が挿入されます。
+<pre><code>refs: {
+       "100",
+       "200",
+      }
+</code></pre>
+アンカータグが &gt; 1個または3個以上、全角不等号であっても抽出できます。
+</li>
+</ul></li>
+</ul>
+
+<h4>出力例</h4>
+<p><a href="http://twoson.herokuapp.com/thread?url=http://engawa.2ch.net/test/read.cgi/linux/1356654422/&amp;show_aa=false&amp;refs=true">http://twoson.herokuapp.com/thread?url=http://engawa.2ch.net/test/read.cgi/linux/1356654422/&amp;show_aa=false&amp;refs=true (Arch Linux 6)</a></p>
+
+<div class="accordion" id="makeaccThread">
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse"
+         data-parent="#makeaccThread" href="#collapseThread">出力例</a>
+    </div>
+    <div id="collapseThread" class="accordion-body collapse">
+      <div class="accordion-inner">
+<pre><code>{
+  "thread_url": "http://engawa.2ch.net/test/read.cgi/linux/1356654422/",
+  "result": true,
+  "archived": false,
+  "title": "Arch Linux 6",
+  "res": {
+    "1": {
+      "name": "login:Penguin",
+      "email": "",
+      "date": "2012/12/28(金) 09:27:02.45",
+      "id": "ieDc0Hgv",
+      "body": "公式: http://www.archlinux.org/ 特徴: https://wiki.archlinux.org/index.php/Arch_Linux 　　　http://ja.wikipedia.org/wiki/Arch_Linux Beginners' Guide: https://wiki.archlinux.org/index.php/Beginners%27_Guide ArchWiki: https://wiki.archlinux.org/index.php/Main_Page フォーラム: https://bbs.archlinux.org/ Arch系ディストロ: https://wiki.archlinux.org/index.php/Arch_Based_Distributions_(Active)  ※ 質問はBeginners' Guideを熟読し、ArchWiki、フォーラムを検索してから。 ※ 次スレは>>980が建てること。  前スレ: Arch Linux 5 http://engawa.2ch.net/test/read.cgi/linux/1338642432/",
+      "refs": [
+        "980"
+      ]
+    },
+    "2": {
+      "name": "login:Penguin",
+      "email": "sage",
+      "date": "2012/12/28(金) 21:59:05.10",
+      "id": "c3ZFbbfW",
+      "body": ">>1 乙",
+      "refs": [
+        "1"
+      ]
+    },
+    "3": {
+      "name": "login:Penguin",
+      "email": "sage",
+      "date": "2012/12/28(金) 23:44:40.62",
+      "id": "1S89srdU",
+      "body": ">>980 前スレでノイズが混じったからテンプレのベースこれでよろしくー。 --- 公式: http://www.archlinux.org/ 特徴: https://wiki.archlinux.org/index.php/Arch_Linux 　　　http://ja.wikipedia.org/wiki/Arch_Linux Beginners' Guide: https://wiki.archlinux.org/index.php/Beginners%27_Guide ArchWiki: https://wiki.archlinux.org/index.php/Main_Page フォーラム: https://bbs.archlinux.org/  ※ 質問はBeginners' Guideを熟読し、ArchWiki、フォーラムを検索してから。 ※ 次スレは>>980が建てること。  前スレ: Arch Linux 6 http://engawa.2ch.net/test/read.cgi/linux/1356654422/",
+      "refs": [
+        "980"
+      ]
+    },
+    "4": {
+      "name": "login:Penguin",
+      "email": "sage",
+      "date": "2012/12/29(土) 00:02:39.40",
+      "id": "2uFTOpwS",
+      "body": ">>3 おまえなんなん？ 粘着厨？",
+      "refs": [
+        "3"
+      ]
+    },
+    ...
+  },
+  "count": 435
+}
+</code></pre>pp
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4>レスポンス JSON</h4>
+
+<ul>
+  <li><code>thread_url</code>
+    <ul>
+      <li>スレッドの URL</li>
+  </ul></li>
+  <li><code>result</code>
+    <ul>
+      <li>取得結果</li>
+  </ul></li>
+  <li><code>archived</code>
+    <ul>
+      <li>dat 落ちスレッドなら <em>true</em>、そうでなければ <em>false</em></li>
+  </ul></li>
+  <li><code>res</code>
+    <ul>
+      <li><code>name</code>
+        <ul>
+          <li>名前</li>
+      </ul></li>
+      <li><code>email</code>
+        <ul>
+          <li>メールアドレス</li>
+      </ul></li>
+      <li><code>date</code>
+        <ul>
+          <li>書き込み日時</li>
+      </ul></li>
+      <li><code>id</code>
+        <ul>
+          <li>id</li>
+      </ul></li>
+      <li><code>body</code>
+        <ul>
+          <li>レス本文</li>
+      </ul></li>
+      <li><code>refs</code>
+        <ul>
+          <li>レス参照一覧</li>
+          <li><code>refs</code>パラメータが <em>true</em> の場合のみ出力</li>
+      </ul></li>
+  </ul></li>
+  <li><code>count</code>
+    <ul>
+      <li>レス数</li>
+  </ul></li>
+</ul>
+
+<hr />
+
+<h2>作者</h2>
+
+<p><a href="https://twitter.com/dtan4">@dtan4</a></p>
+
+<hr />
+
+<h2>ソースコード</h2>
+
+<p>github: <a href="https://github.com/dtan4/2son/">dtan4/2son</a></p>
+
+<strong>TODO</strong>
+<ul>
+<li>テスト書けよ</li>
+<li>キャッシュ実装とか</li>
+</ul>
