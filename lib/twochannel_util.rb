@@ -20,7 +20,6 @@ module TwoChannelParser
       body = extract_gz(res.body)
       board_map = parse_bbstable_body(body)
       bbstable["board"] = board_map
-      bbstable["count"] = board_map.length
     else
       bbstable["result"] = false
     end
@@ -265,7 +264,7 @@ module TwoChannelParser
     end
 
     if escape_nl
-      body = body.gsub(/\s*<br>\s*/i, "\\\\n")
+      body = body.gsub(/\s*<br>\s*/i, '\n')
     else
       body = body.gsub(/\s*<br>\s*/i, " ")
     end
@@ -285,10 +284,12 @@ module TwoChannelParser
     body = body.gsub(/<a href="(.*?)" target="_blank">(>>\d{1,4})<\/a>/i){$2}
     body = body.gsub(/<a href="(.*?)" target="_blank">/i){$1}
 
-    if line_arr.length > 4
-      thread_title = line_arr[4]
+    # 先頭レス末尾にスレッドタイトルが含まれる
+    # 最初に取得したらあとは飛ばす
+    if title == "" && line_arr[4] != "\n"
+      title = line_arr[4].strip
     end
 
-    return name, email, date, id, body, refs, thread_title
+    return name, email, date, id, body, refs, title
   end
 end
